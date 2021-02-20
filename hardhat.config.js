@@ -6,6 +6,7 @@ require('hardhat-gas-reporter')
 require('hardhat-deploy')
 require('@nomiclabs/hardhat-etherscan')
 
+require('dotenv').config()
 
 // REQUIRED TO ENSURE METADATA IS SAVED IN DEPLOYMENTS (because solidity-coverage disable it otherwise)
 const {
@@ -17,9 +18,8 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
   return input;
 })
 
-
 function nodeUrl(network) {
-  let infuraKey
+  let infuraKey = process.env.INFURA;
   try {
     infuraKey = fs.readFileSync(path.resolve(__dirname, '.infuraKey')).toString().trim()
   } catch(e) {
@@ -84,7 +84,7 @@ module.exports = {
       }
     }
   },
-  gasReporter: {
+    gasReporter: {
     enabled: true,
   },
   paths: {

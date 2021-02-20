@@ -104,6 +104,8 @@ typings/
 # Serverless directories
 .serverless/
 
+playground/
+
 # FuseBox cache
 .fusebox/
 

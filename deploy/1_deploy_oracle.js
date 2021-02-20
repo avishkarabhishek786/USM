@@ -1,3 +1,4 @@
+const fs = require('fs').promises;
 
 const chainlinkAddresses = {
   '1' : '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',
@@ -21,11 +22,13 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId()
 
+
   const usdcEthTokenToUse = 1
   const usdcEthEthDecimals = -12
 
   let aggregator, anchoredView, usdcEthPair
   let aggregatorAddress, anchoredViewAddress, usdcEthPairAddress
+  let oracle
 
   if (chainId === '31337') { // buidlerevm's chainId
     const chainlinkPrice = '38598000000' // 8 dec places: see ChainlinkOracle
@@ -58,7 +61,7 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     console.log(`Deployed MockUniswapV2Pair to ${usdcEthPair.address}`);
     usdcEthPairAddress = usdcEthPair.address
 
-    const oracle = await deploy('MedianOracle', {
+    oracle = await deploy('MedianOracle', {
       from: deployer,
       deterministicDeployment: true,
       args: [
@@ -76,7 +79,7 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     anchoredViewAddress = compoundAddresses[chainId]
     usdcEthPairAddress = usdcEthAddresses[chainId]
   
-    const oracle = await deploy('MockChainlinkOracle', {
+    oracle = await deploy('MockChainlinkOracle', {
       from: deployer,
       deterministicDeployment: true,
       args: [chainlinkAddresses[chainId]],
@@ -88,13 +91,27 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     anchoredViewAddress = compoundAddresses[chainId]
     usdcEthPairAddress = usdcEthAddresses[chainId]
   
-    const oracle = await deploy('MedianOracle', {
+    oracle = await deploy('MedianOracle', {
       from: deployer,
       deterministicDeployment: true,
-      args: require(`./oracle-args-${chainId}`),
+      args: require(`./.args/oracle-args-${chainId}`),
     })
     console.log(`Deployed MedianOracle to ${oracle.address}`);
   }
+
+  if(chainId==31337) {
+    const usm_args_localhost = `module.exports = [
+        "${oracle.address}",
+            [
+                "${aggregatorAddress}",
+                "${anchoredViewAddress}",
+                "${usdcEthPairAddress}"
+            ],
+        ]`;
+    
+        await fs.writeFile(`./deploy/.args/usm-args-${chainId}.js`, usm_args_localhost);
+  }
+
 };
 
 module.exports = func;

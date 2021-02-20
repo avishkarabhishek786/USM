@@ -8,7 +8,7 @@
 
 # start ganache
 npx ganache-cli \
-    --mnemonic "all your mnemonic are belong to us seed me up scotty over" \
+    --mnemonic "swarm choose host odor often raise toss viable theme rally style abuse adapt month quarter" \
     --defaultBalanceEther 1000000 \
     --gasLimit 0xfffffffffff \
     --gasPrice 0 \
