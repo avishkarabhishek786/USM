@@ -34,6 +34,7 @@ if (!mnemonic) {
     mnemonic = fs.readFileSync(path.resolve(__dirname, '.secret')).toString().trim()
   } catch(e){}
 }
+
 const accounts = mnemonic ? {
   mnemonic,
 }: undefined;

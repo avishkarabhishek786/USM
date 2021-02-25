@@ -57,6 +57,13 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
       from: deployer,
       deterministicDeployment: true,
     });
+    
+    
+    // Added by Abhishek
+    await execute('MockUniswapV2Pair', { from: deployer }, 'setReserves', '0', '0', '1606780664')
+    
+    
+    
     await execute('MockUniswapV2Pair', { from: deployer }, 'setCumulativePrices', usdcEthCumPrice0, usdcEthCumPrice1)
     console.log(`Deployed MockUniswapV2Pair to ${usdcEthPair.address}`);
     usdcEthPairAddress = usdcEthPair.address

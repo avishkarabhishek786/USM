@@ -11,6 +11,16 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     args: [usmAddress],
   })
   console.log(`Deployed USMView to ${usmView.address}`);
+
+
+  if(chainId==31337) {
+    // Added by Abhishek
+    //const MockUniswapV2Pair = await get('MockUniswapV2Pair');
+    await execute('MockUniswapV2Pair', { from: deployer }, 'setReserves', '0', '0', '1606782003')
+    await execute('MockUniswapV2Pair', { from: deployer }, 'setCumulativePrices', '0', '31377639132666967530700283664103')
+    await execute('USM', { from: deployer }, 'refreshPrice');  
+  }
+
 };
 
 module.exports = func;

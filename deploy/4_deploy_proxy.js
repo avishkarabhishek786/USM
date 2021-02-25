@@ -1,8 +1,9 @@
-
 const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     const { deploy, get, read, execute } = deployments;
     const { deployer } = await getNamedAccounts();
     const chainId = await getChainId()
+
+    console.log("deployer", deployer);
   
     const wethAddresses = {
       '1' : '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
@@ -17,6 +18,14 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
         deterministicDeployment: true
       })
       wethAddress = weth.address
+
+      // Mint some weth for our funders
+    //   await execute('WETH9', { 
+    //       from: "0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199", 
+    //       value: '100000000000000000000' 
+    //     }, 'deposit')
+    //   console.log(`100 ethers sent to 0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199 from weth ${wethAddress}`);
+        
     }
     else {
       wethAddress = wethAddresses[chainId]
@@ -30,6 +39,7 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
       args: [usmAddress, wethAddress]
     })
   
+    console.log(`Deployed WETH to ${wethAddress}`);
     console.log(`Deployed Proxy to ${proxy.address}`);
   }
   
