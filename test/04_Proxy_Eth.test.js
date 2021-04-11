@@ -7,11 +7,11 @@ const TestOracle = artifacts.require('TestOracle')
 const USM = artifacts.require('USM')
 const FUM = artifacts.require('FUM')
 const USMView = artifacts.require('USMView')
-const Proxy = artifacts.require('Proxy')
+const USMWETHProxy = artifacts.require('USMWETHProxy')
 
 require('chai').use(require('chai-as-promised')).should()
 
-contract('USM - Proxy - Eth', (accounts) => {
+contract('USM - USMWETHProxy - Eth', (accounts) => {
   const [deployer, user1, user2] = accounts
   const [TWO, WAD] =
         [2, '1000000000000000000'].map(function (n) { return new BN(n) })
@@ -32,7 +32,7 @@ contract('USM - Proxy - Eth', (accounts) => {
       await usm.refreshPrice()  // Ensures the savedPrice passed to the constructor above is also set in usm.storedPrice
       fum = await FUM.at(await usm.fum())
       usmView = await USMView.new(usm.address, { from: deployer })
-      proxy = await Proxy.new(usm.address, weth.address, { from: deployer })
+      proxy = await USMWETHProxy.new(usm.address, weth.address, { from: deployer })
 
       await weth.deposit({ from: user1, value: oneEth.mul(TWO) }) // One 1-ETH fund() + one 1-ETH mint()
       await weth.approve(proxy.address, MAX, { from: user1 })
@@ -111,12 +111,12 @@ contract('USM - Proxy - Eth', (accounts) => {
           })
 
           it('allows minting USM by sending ETH, if minUsmOut specified but met (2)', async () => {
-            await web3.eth.sendTransaction({ from: user1, to: usm.address, value: '1000000000000010136' }) // Returns >= 101.36 USM per ETH
+            await web3.eth.sendTransaction({ from: user1, to: usm.address, value: '1000000000000010254' }) // Returns >= 102.54 USM per ETH
           })
 
           it('does not mint USM by sending ETH, if minUsmOut specified and missed (1)', async () => {
             await expectRevert(
-              web3.eth.sendTransaction({ from: user1, to: usm.address, value: '1000000000000010137' }), // Returns < 101.37 USM per ETH
+              web3.eth.sendTransaction({ from: user1, to: usm.address, value: '1000000000000010255' }), // Returns < 102.55 USM per ETH
               "Limit not reached",
             )
           })
@@ -155,7 +155,7 @@ contract('USM - Proxy - Eth', (accounts) => {
             const startingEthPool = await usm.ethPool()
             const startingWethBalance = await weth.balanceOf(user1)
 
-            const fumToBurn = startingFumBalance.mul(new BN('3')).div(new BN('4')) // defund 75% of our FUM
+            const fumToBurn = startingFumBalance.div(new BN('2')) // defund 50% of our FUM
             await proxy.defund(user1, fumToBurn, 0, { from: user1 })
 
             const endingFumBalance = await fum.balanceOf(user1)

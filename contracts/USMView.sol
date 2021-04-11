@@ -21,9 +21,9 @@ contract USMView {
      * @notice Calculate the amount of ETH in the buffer.
      * @return buffer ETH buffer
      */
-    function ethBuffer(WadMath.Round upOrDown) external view returns (int buffer) {
+    function ethBuffer(bool roundUp) external view returns (int buffer) {
         (uint price, ) = usm.latestPrice();
-        buffer = usm.ethBuffer(price, usm.ethPool(), usm.totalSupply(), upOrDown);
+        buffer = usm.ethBuffer(price, usm.ethPool(), usm.totalSupply(), roundUp);
     }
 
     /**
@@ -31,9 +31,9 @@ contract USMView {
      * @param ethAmount The amount of ETH to convert
      * @return usmOut The amount of USM
      */
-    function ethToUsm(uint ethAmount, WadMath.Round upOrDown) external view returns (uint usmOut) {
+    function ethToUsm(uint ethAmount, bool roundUp) external view returns (uint usmOut) {
         (uint price, ) = usm.latestPrice();
-        usmOut = usm.ethToUsm(price, ethAmount, upOrDown);
+        usmOut = usm.ethToUsm(price, ethAmount, roundUp);
     }
 
     /**
@@ -41,9 +41,9 @@ contract USMView {
      * @param usmAmount The amount of USM to convert
      * @return ethOut The amount of ETH
      */
-    function usmToEth(uint usmAmount, WadMath.Round upOrDown) external view returns (uint ethOut) {
+    function usmToEth(uint usmAmount, bool roundUp) external view returns (uint ethOut) {
         (uint price, ) = usm.latestPrice();
-        ethOut = usm.usmToEth(price, usmAmount, upOrDown);
+        ethOut = usm.usmToEth(price, usmAmount, roundUp);
     }
 
     /**
@@ -61,7 +61,9 @@ contract USMView {
      */
     function usmPrice(IUSM.Side side) external view returns (uint price) {
         (uint ethUsdPrice, ) = usm.latestPrice();
-        price = usm.usmPrice(side, ethUsdPrice, usm.buySellAdjustment());
+        IUSM.Side ethSide = (side == IUSM.Side.Buy ? IUSM.Side.Sell : IUSM.Side.Buy);   // Buying USM = selling ETH
+        uint adjustedPrice = usm.adjustedEthUsdPrice(ethSide, ethUsdPrice, usm.bidAskAdjustment());
+        price = usm.usmPrice(side, adjustedPrice);
     }
 
     /**
@@ -70,12 +72,13 @@ contract USMView {
      */
     function fumPrice(IUSM.Side side) external view returns (uint price) {
         (uint ethUsdPrice, ) = usm.latestPrice();
+        uint adjustedPrice = usm.adjustedEthUsdPrice(side, ethUsdPrice, usm.bidAskAdjustment());
         uint ethPool = usm.ethPool();
         uint usmSupply = usm.totalSupply();
         uint oldTimeUnderwater = usm.timeSystemWentUnderwater();
         if (side == IUSM.Side.Buy) {
-            (, usmSupply) = usm.checkIfUnderwater(usmSupply, ethPool, ethUsdPrice, oldTimeUnderwater, block.timestamp);
+            (, usmSupply, ) = usm.checkIfUnderwater(usmSupply, ethPool, ethUsdPrice, oldTimeUnderwater, block.timestamp);
         }
-        price = usm.fumPrice(side, ethUsdPrice, ethPool, usmSupply, usm.fumTotalSupply(), usm.buySellAdjustment());
+        price = usm.fumPrice(side, adjustedPrice, ethPool, usmSupply, usm.fumTotalSupply());
     }
 }

@@ -9,7 +9,7 @@ import "./Oracle.sol";
  */
 contract ChainlinkOracle is Oracle {
 
-    uint public constant CHAINLINK_SCALE_FACTOR = 10 ** 10; // Since Chainlink has 8 dec places, and latestPrice() needs 18
+    uint public constant CHAINLINK_SCALE_FACTOR = 1e10; // Since Chainlink has 8 dec places, and latestPrice() needs 18
 
     AggregatorV3Interface public immutable chainlinkAggregator;
 
@@ -23,12 +23,9 @@ contract ChainlinkOracle is Oracle {
      * @return price
      */
     function latestPrice() public virtual override view returns (uint price, uint updateTime) {
-        (price, updateTime) = latestChainlinkPrice();
-    }
-
-    function latestChainlinkPrice() public view returns (uint price, uint updateTime) {
         int rawPrice;
         (, rawPrice,, updateTime,) = chainlinkAggregator.latestRoundData();
-        price = uint(rawPrice) * CHAINLINK_SCALE_FACTOR; // TODO: Cast safely
+        require(rawPrice > 0, "Chainlink price <= 0");
+        price = uint(rawPrice) * CHAINLINK_SCALE_FACTOR;
     }
 }

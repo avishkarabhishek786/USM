@@ -5,31 +5,44 @@ import "./ChainlinkOracle.sol";
 import "./CompoundOpenOracle.sol";
 import "./OurUniswapV2TWAPOracle.sol";
 
+/**
+ * We make MedianOracle *inherit* its median-component oracles (eg, ChainlinkOracle), rather than hold them as state variables
+ * like any sane person would, because this significantly reduces the number of (gas-pricey) external contract calls.
+ * Eg, this contract calling ChainlinkOracle.latestPrice() on itself is significantly cheaper than calling
+ * chainlinkOracle.latestPrice() on a chainlinkOracle var (contract).
+ */
 contract MedianOracle is ChainlinkOracle, CompoundOpenOracle, OurUniswapV2TWAPOracle {
 
     constructor(
         AggregatorV3Interface chainlinkAggregator,
-        UniswapAnchoredView compoundView,
-        IUniswapV2Pair uniswapPair, uint uniswapToken0Decimals, uint uniswapToken1Decimals, bool uniswapTokensInReverseOrder
+        CompoundUniswapAnchoredView compoundView,
+        IUniswapV2Pair uniswapPair, uint uniswapTokenToUse, int uniswapTokenDecimals
     )
         ChainlinkOracle(chainlinkAggregator)
         CompoundOpenOracle(compoundView)
-        OurUniswapV2TWAPOracle(uniswapPair, uniswapToken0Decimals, uniswapToken1Decimals, uniswapTokensInReverseOrder) {}
+        OurUniswapV2TWAPOracle(uniswapPair, uniswapTokenToUse, uniswapTokenDecimals) {}
 
     function latestPrice() public virtual override(ChainlinkOracle, CompoundOpenOracle, OurUniswapV2TWAPOracle)
         view returns (uint price, uint updateTime)
     {
-        (price, updateTime) = latestMedianOraclePrice();
-    }
-
-    function latestMedianOraclePrice() public view returns (uint price, uint updateTime) {
         (uint chainlinkPrice, uint chainlinkUpdateTime) = ChainlinkOracle.latestPrice();
         (uint compoundPrice, uint compoundUpdateTime) = CompoundOpenOracle.latestPrice();
         (uint uniswapPrice, uint uniswapUpdateTime) = OurUniswapV2TWAPOracle.latestPrice();
-        uint index = medianIndex(chainlinkPrice, compoundPrice, uniswapPrice);
-        (price, updateTime) = (index == 0 ? (chainlinkPrice, chainlinkUpdateTime) :
-                                            (index == 1 ? (compoundPrice, compoundUpdateTime) :
-                                                          (uniswapPrice, uniswapUpdateTime)));
+        (price, updateTime) = medianPriceAndUpdateTime(chainlinkPrice, chainlinkUpdateTime,
+                                                       compoundPrice, compoundUpdateTime,
+                                                       uniswapPrice, uniswapUpdateTime);
+    }
+
+    function latestChainlinkPrice() public view returns (uint price, uint updateTime) {
+        (price, updateTime) = ChainlinkOracle.latestPrice();
+    }
+
+    function latestCompoundPrice() public view returns (uint price, uint updateTime) {
+        (price, updateTime) = CompoundOpenOracle.latestPrice();
+    }
+
+    function latestUniswapTWAPPrice() public view returns (uint price, uint updateTime) {
+        (price, updateTime) = OurUniswapV2TWAPOracle.latestPrice();
     }
 
     function refreshPrice() public virtual override(Oracle, CompoundOpenOracle, OurUniswapV2TWAPOracle)
@@ -40,23 +53,23 @@ contract MedianOracle is ChainlinkOracle, CompoundOpenOracle, OurUniswapV2TWAPOr
         (uint chainlinkPrice, uint chainlinkUpdateTime) = ChainlinkOracle.latestPrice();
         (uint compoundPrice, uint compoundUpdateTime) = CompoundOpenOracle.refreshPrice();      // Note: refreshPrice()
         (uint uniswapPrice, uint uniswapUpdateTime) = OurUniswapV2TWAPOracle.refreshPrice();    // Note: refreshPrice()
-        uint index = medianIndex(chainlinkPrice, compoundPrice, uniswapPrice);
-        (price, updateTime) = (index == 0 ? (chainlinkPrice, chainlinkUpdateTime) :
-                                            (index == 1 ? (compoundPrice, compoundUpdateTime) :
-                                                          (uniswapPrice, uniswapUpdateTime)));
+        (price, updateTime) = medianPriceAndUpdateTime(chainlinkPrice, chainlinkUpdateTime,
+                                                       compoundPrice, compoundUpdateTime,
+                                                       uniswapPrice, uniswapUpdateTime);
     }
 
     /**
      * @notice Currently only supports three inputs
-     * @return index (0/1/2) of the median value
+     * @return price the median price of the three passed in
+     * @return updateTime the updateTime corresponding to the median price.  Not the median of the three updateTimes!
      */
-    function medianIndex(uint a, uint b, uint c)
-        public pure returns (uint index)
+    function medianPriceAndUpdateTime(uint p1, uint t1, uint p2, uint t2, uint p3, uint t3)
+        public pure returns (uint price, uint updateTime)
     {
-        bool ab = a > b;
-        bool bc = b > c;
-        bool ca = c > a;
+        bool p1gtp2 = p1 > p2;
+        bool p2gtp3 = p2 > p3;
+        bool p3gtp1 = p3 > p1;
 
-        index = (ca == ab ? 0 : (ab == bc ? 1 : 2));
+        (price, updateTime) = (p3gtp1 == p1gtp2 ? (p1, t1) : (p1gtp2 == p2gtp3 ? (p2, t2) : (p3, t3)));
     }
 }
