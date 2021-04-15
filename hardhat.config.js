@@ -5,7 +5,7 @@ require('solidity-coverage')
 require('hardhat-gas-reporter')
 require('hardhat-deploy')
 require('@nomiclabs/hardhat-etherscan')
-
+require('dotenv').config()
 
 // REQUIRED TO ENSURE METADATA IS SAVED IN DEPLOYMENTS (because solidity-coverage disable it otherwise)
 const {
