@@ -1,3 +1,5 @@
+const fs = require('fs').promises;
+
 const chainlinkAddresses = {
   '1' : '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',
   '42' : '0x9326BFA02ADD2366b30bacB125260Af641031331',
@@ -41,12 +43,12 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     console.log(`Deployed MockChainlinkAggregatorV3 to ${aggregator.address}`);
     aggregatorAddress = aggregator.address
 
-    anchoredView = await deploy('MockUniswapAnchoredView', {
+    anchoredView = await deploy('MockCompoundUniswapAnchoredView', {
       from: deployer,
       deterministicDeployment: true,
     });
-    await execute('MockUniswapAnchoredView', { from: deployer }, 'set', compoundPrice)
-    console.log(`Deployed MockUniswapAnchoredView to ${anchoredView.address}`);
+    await execute('MockCompoundUniswapAnchoredView', { from: deployer }, 'set', compoundPrice)
+    console.log(`Deployed MockCompoundUniswapAnchoredView to ${anchoredView.address}`);
     anchoredViewAddress = anchoredView.address
 
     usdcEthPair = await deploy('MockUniswapV2Pair', {
@@ -70,6 +72,17 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     })
     console.log(`Deployed MedianOracle to ${oracle.address}`);
 
+    const usm_args_localhost = `module.exports = [
+        "${oracle.address}",
+            [
+                "${aggregatorAddress}",
+                "${anchoredViewAddress}",
+                "${usdcEthPairAddress}"
+            ],
+        ]`;
+    
+    await fs.writeFile(`./deploy/.args/usm-args-${chainId}.js`, usm_args_localhost);
+
   } else if (chainId === '42') {
     aggregatorAddress = chainlinkAddresses[chainId]
     anchoredViewAddress = compoundAddresses[chainId]
@@ -90,10 +103,12 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     const oracle = await deploy('MedianOracle', {
       from: deployer,
       deterministicDeployment: true,
-      args: require(`./oracle-args-${chainId}`),
+      args: require(`./.args/oracle-args-${chainId}`),
     })
     console.log(`Deployed MedianOracle to ${oracle.address}`);
   }
+
+
 };
 
 module.exports = func;

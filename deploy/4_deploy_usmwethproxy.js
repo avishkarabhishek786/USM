@@ -30,6 +30,7 @@ const func = async function ({ deployments, getNamedAccounts, getChainId }) {
     args: [usmAddress, wethAddress]
   })
 
+  console.log(`Deployed weth to ${wethAddress}`);
   console.log(`Deployed USMWETHProxy to ${proxy.address}`);
 }
 

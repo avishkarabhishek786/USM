@@ -1547,7 +1547,7 @@ export const usm = {
     address: {
       1: '0x03eb7Ce2907e202bB70BAE3D7B0C588573d3cECC',
       42: '0x21453979384f21D09534f8801467BDd5d90eCD6C',
-      31337: '0x1b7Fe0B1b51534432DD2Daf88AcB2550c05B37B3'
+      31337: '0xAB493d058ab79E27F099d2dC2401351B31CeD7E1'
     }
   }
   
@@ -2035,7 +2035,7 @@ export const usm = {
     address: {
       1: '0xf04a5D82ff8a801f7d45e9C14CDcf73defF1a394',
       42: '0x96F8F5323Aa6CB0e6F311bdE6DEEFb1c81Cb1898',
-      31337: '0xE501b45730EbB574C88206e7c9aC89A80C82f8b6'
+      31337: '0x5220EF712802E2C7E75AcC8bBAbEe173FbefFE9B'
     }
   }
   
@@ -2188,7 +2188,7 @@ export const usm = {
       address: {
           1: '',
           42: '0x5442818E2E38FB2c8F4CEed22782663b8FCBD0b5',
-          31337: '0xa7893E905b351371E0dc305C57BDD29981c82fF5'
+          31337: '0xC03C52D27300123C3d4b86C7d978A340b72404C5'
       }    
   }
   
@@ -2235,7 +2235,7 @@ export const usm = {
       address: {
           1: '',
           42: '0x4B2D04f6d7721B09024E0d61C1617DF04e4C21ae', 
-          31337: '0x0fd655C72D86e458387869b4E33c781B43B6bd2c'
+          31337: '0x8893Ea797dbC00a6044430623Cb06b3474320861'
       }    
   }
   
@@ -2408,7 +2408,7 @@ export const usm = {
       address: {
           1: '',
           42: '0xaCDCd6A936134D7C84163CD9B23B256cb25942D0',
-          31337: '0xbecB3F9EC34FC6AddDabE264D1f13DFfD9F35DDf'
+          31337: '0x53122E65307af6fF2190E440F7af0A1C82fB922A'
       }    
   }
 

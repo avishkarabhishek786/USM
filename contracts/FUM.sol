@@ -17,7 +17,7 @@ contract FUM is ERC20Permit, OptOutable {
     IUSM public immutable usm;
 
     constructor(address[] memory optedOut_)
-        ERC20Permit("Minimalist Funding v1.0 - Test 4", "FUMTest")
+        ERC20Permit("Asset Test V1", "ASSET")
         OptOutable(optedOut_)
     {
         usm = IUSM(msg.sender);     // FUM constructor can only be called by a USM instance
